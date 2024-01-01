@@ -20,7 +20,7 @@ var fre, ex, amp;
 	ex = SinOsc.ar{fre} * amp;
 }.play;
 )
-a.set(\changeRun, 10.cubed);
+a.set(\changeRun, 100.cubed);
 a.set(\changeRun, exprand(3, 70));
 a.free;
 //alternative
