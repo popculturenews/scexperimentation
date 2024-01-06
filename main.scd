@@ -61,3 +61,24 @@ var fre, ex, amp;
 a.set(\changeRun, 10);
 a.set(\changeRun, exprand(3, 70));
 a.free;
+//Create function w/EnvGen control rate being multiplied by 200 and added to 0.1. Refer to in execution.
+(
+q = {
+    arg gate = 1;
+    var ex, env, freq;
+	freq = EnvGen.kr(Env.adsr(1), gate, 200, 0.1);
+    env = EnvGen.kr(Env.adsr, gate);
+	ex = VarSaw.ar(SinOsc.kr(freq).range(200, 800)) * env;
+}.play;
+)
+q.set(\gate, 1);
+q.free;
+//Executing envelope w/duration of 2.5 seconds. Amplitude will progressively deteriorate, will ensure execution will stop with doneAction.
+(
+y = {
+	var env, ex;
+	env = Line.kr(2, 0, 2.5, doneAction:2);
+	ex = Pulse.ar(exprand(200, 800)) * env;
+}.play;
+)
+y.free;
