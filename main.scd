@@ -1,5 +1,6 @@
 //To begin: mandatory booting.
 s.boot;
+Stethoscope.new;
 s.quit;
 //Establishes synthDef, variables and arguments.
 (
@@ -22,20 +23,26 @@ SynthDef(\synthOne, {
 //Combines elements to conduct tune.
     ex1 = Pulse.ar(freq1, width, amp1);
     ex2 = Pulse.ar(freq2, width, amp2);
+	//Apply reverb.
+	ex1 = FreeVerb.ar(ex1, 0.7, 0.8, 0.25);
+	ex2 = FreeVerb.ar(ex2, 0.7, 0.8, 0.25);
+	//Conduct output.
+	Out.ar(0, ex1);
+    Out.ar(1, ex2);
 }).add;
 )
+b = Synth.new(\synthOne);
+b.free;
 (
-//Regular sinOsc w/decreased amplitude.
+//Regular sinOsc w/significantly increased amplitude.
 a = {
 	var amp, ex;
-	amp = LFNoise1.kr(500, 10, 0.0);
+	amp = LFNoise1.kr(100, 1, 0.0);
 	ex = SinOsc.ar * amp;
 }.play;
 )
 a.free;
 //Accessible changes of variables.
-b = Synth.new(\synthOne);
-b.free;
 
 x = Synth.new(\synthOne, [\width, 0.09, \ampHertz, 8, \two, 50, \crucial, 80, \dampRev, 0.25, \mixRev, 1.2, \speedDecipher, 16.cubed, \conductDecipher, 10.squared]);
 x.free;
@@ -71,7 +78,7 @@ q = {
 	ex = VarSaw.ar(SinOsc.kr(freq).range(200, 800)) * env;
 }.play;
 )
-q.set(\gate, 1);
+q.set(\gate, 0);
 q.free;
 //Executing envelope w/duration of 2.5 seconds. Amplitude will progressively deteriorate, will ensure execution will stop with doneAction.
 (
@@ -82,3 +89,25 @@ y = {
 }.play;
 )
 y.free;
+//Create SynthDef conducting multichannel happenings. Splay will fluctuate and deteriorate both in a duration of ten seconds.
+(
+SynthDef.new (\niceSound, {
+	var ex, amp, env;
+	env = EnvGen.kr(
+		Env.new([1, 0, 1], [10, 10], [1, -1]),
+		doneAction: 2
+	);
+	//Generate unique arrays eight consecutive times for control rate and ar.
+	amp = SinOsc.kr({ExpRand(7, 16)}!8).range(0, 1);
+	ex = SinOsc.ar({ExpRand(200, 700)}!8);
+	ex = ex * amp * env;
+	//Create Splay with decreased amplitude, and conduct required output command.
+	ex = Splay.ar(ex) * 0.625;
+	Out.ar(0, ex);
+}).add;
+)
+f = Synth.new(\niceSound);
+f.free;
+//Create PinkNoise with multichannel happenings.
+g = {PinkNoise.ar(0.5)!2}.play;
+g.free;
