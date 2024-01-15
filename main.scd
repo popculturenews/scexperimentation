@@ -111,3 +111,83 @@ f.free;
 //Create PinkNoise with multichannel happenings.
 g = {PinkNoise.ar(0.5)!2}.play;
 g.free;
+//Create SynthDef with tremendous iterations: envelope generator possesses distinguishable traits, refer to in execution. Conduct 'do' and duplication of UGens: Random frequuency & iphase, exponentially random duty cycle.
+(
+SynthDef.new(\iteration, {
+		arg freq = 40;
+	var whole, ex, env;
+	ex = 0;
+	env = EnvGen.kr(
+		Env.perc(0.01, 4.0, 2.0, -2),
+		doneAction:2
+	);
+	10.do{
+	whole = VarSaw.ar(
+			freq * {Rand(1.1, 1.625)}!2,
+			{Rand(0.0, 1.0)}!2,
+			{ExpRand(0.005, 0.06)}!2,
+		);
+		ex = ex + whole;
+	};
+	ex = ex * 0.05 * env;
+	Out.ar(0, ex);
+}).add;
+)
+//Manipulate frequency argument.
+Synth.new(\iteration, [\freq, 400]);
+Synth.new(\iteration, [\freq, 700]);
+Synth.new(\iteration, [\freq, 350]);
+Synth.new(\iteration, [\freq, 250]);
+Synth.new(\iteration, [\freq, 100]);
+//Conducting simultaneous frequencies using midicps & arrays.
+(
+[53, 46, 72, 61].do{
+	arg midinote;
+	Synth.new(\iteration, [\freq, midinote.midicps]);
+}
+)
+//Create second SynthDef with tremendous differences. (LFNoise1 will specify frequency). Evoke peculiar sounds using multichannel happenings, duplications. Range will result in spontaneous fluctuations.
+(
+SynthDef.new(\iteration2, {
+		arg freq = 225;
+	var whole, ex;
+	ex = 0;
+	10.do{
+		arg specify;
+	whole = SinOsc.ar(
+		freq *
+			(specify + 1) *
+			LFNoise1.kr({Rand(0.05, 0.2)}!2).range(0.9, 1.1)
+		);
+		whole = whole * LFNoise1.kr({Rand(0.7, 7)}!2).exprange(0.02, 1.1);
+		ex = ex + whole;
+	};
+	ex = ex * 0.05;
+	Out.ar(0, ex);
+}).add;
+)
+x = Synth.new(\iteration2);
+x.set(\freq, 75);
+x.free;
+//Input and output bus experimentation: simple frequency with low control rate, execution with decreased amplitude, little impulse, Envelope with moderate range.
+(
+SynthDef.new(\begin1, {
+	arg out;
+	var freq, two, ex;
+	freq = LFNoise0.kr(6).exprange(350, 700).round(300);
+	ex = SinOsc.ar(freq) * 0.375;
+	two = Dust.kr(3);
+	ex = ex * EnvGen.kr(Env.perc(0.01, 0.7), two);
+	Out.ar(out, ex);
+}).add;
+//Apply reverb.
+SynthDef.new(\revSynth, {
+	arg in, out = 0;
+	var ex;
+	ex = In.ar(in, 1);
+	ex = FreeVerb.ar(ex, 0.45, 0.7, 0.4)!2;
+	Out.ar(out, ex);
+}).add;
+)
+u = Synth.new(\revSynth, [\in, 6]);
+w = Synth.new(\begin1, [\out, 6]);
