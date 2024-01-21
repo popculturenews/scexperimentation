@@ -33,19 +33,20 @@ SynthDef(\synthOne, {
 )
 b = Synth.new(\synthOne);
 b.free;
+s.killAll;
 (
-//Regular sinOsc w/significantly increased amplitude.
+//Regular sinOsc w/significantly increased amplitude (Will be frightening loud & claustrophobic.
 a = {
 	var amp, ex;
 	amp = LFNoise1.kr(100, 1, 0.0);
 	ex = SinOsc.ar * amp;
 }.play;
 )
+Server.killAll;
 a.free;
 //Accessible changes of variables.
 
 x = Synth.new(\synthOne, [\width, 0.09, \ampHertz, 8, \two, 50, \crucial, 80, \dampRev, 0.25, \mixRev, 1.2, \speedDecipher, 16.cubed, \conductDecipher, 10.squared]);
-x.free;
 x.set(\crucial, 100);
 x.set(\width, 0.5);
 x.set(\ampHertz, 16);
@@ -169,25 +170,43 @@ SynthDef.new(\iteration2, {
 x = Synth.new(\iteration2);
 x.set(\freq, 75);
 x.free;
-//Input and output bus experimentation: simple frequency with low control rate, execution with decreased amplitude, little impulse, Envelope with moderate range.
+//Input and output bus experimentation: simple frequency with low control rate, execution with decreased amplitude, little impulse, Envelope with moderate range. Contains unit generator modulation.
 (
 SynthDef.new(\begin1, {
-	arg out;
+	arg out, crucial = 350, density = 3, decay = 0.7;
 	var freq, two, ex;
-	freq = LFNoise0.kr(6).exprange(350, 700).round(300);
+	freq = LFNoise0.kr(6).exprange(crucial, crucial*2).round(crucial);
 	ex = SinOsc.ar(freq) * 0.375;
-	two = Dust.kr(3);
-	ex = ex * EnvGen.kr(Env.perc(0.01, 0.7), two);
+	two = Dust.kr(density);
+	ex = ex * EnvGen.kr(Env.perc(0.01, decay), two);
+	ex = Pan2.ar(ex, LFNoise0.kr(12));
 	Out.ar(out, ex);
 }).add;
 //Apply reverb.
 SynthDef.new(\revSynth, {
 	arg in, out = 0;
 	var ex;
-	ex = In.ar(in, 1);
-	ex = FreeVerb.ar(ex, 0.45, 0.7, 0.4)!2;
+	ex = In.ar(in, 2);
+	ex = FreeVerb.ar(ex, 0.45, 0.7, 0.4);
 	Out.ar(out, ex);
 }).add;
 )
-u = Synth.new(\revSynth, [\in, 6]);
-w = Synth.new(\begin1, [\out, 6]);
+//Create global variable being referred to by synth, representing multichannel UGens, index of 4. Iteration of 8 replications, assign crucial frequency.
+8.do {
+Synth.new(\begin1,
+		[\out, ~reverbBus,
+			\crucial, exprand(40, 310).round(25)
+	],
+		~sourceGroup
+	);
+}
+//Multiple-node manipulations.
+~sourceGroup.set(\decay, 0.5);
+~sourceGroup.set(\density, 6);
+~sourceGroup.freeAll;
+u = Synth.new(\revSynth, [\in, ~reverbBus], ~afterGroup);
+u.free;
+//afterGroup will be conducted after source group.
+~reverbBus = Bus.audio(s, 1);
+~sourceGroup = Group.new;
+~afterGroup = Group.after(~sourceGroup);
