@@ -34,11 +34,12 @@ SynthDef(\synthOne, {
 b = Synth.new(\synthOne);
 b.free;
 s.killAll;
+s.record;
 (
-//Regular sinOsc w/significantly increased amplitude (Will be frightening loud & claustrophobic.
+//Regular sinOsc w/significantly increased amplitude (Will be frightening loud & claustrophobic).
 a = {
 	var amp, ex;
-	amp = LFNoise1.kr(100, 1, 0.0);
+	amp = LFNoise1.kr(500, 100, 0.0);
 	ex = SinOsc.ar * amp;
 }.play;
 )
@@ -210,3 +211,50 @@ u.free;
 ~reverbBus = Bus.audio(s, 1);
 ~sourceGroup = Group.new;
 ~afterGroup = Group.after(~sourceGroup);
+//Humorous sounds using buffers.
+~bu = Buffer.read(s, "C:/Users/saulh/Downloads/Snare Drum Hit Sound Effect.wav");
+~bu.play;
+~bu.zero;
+~bu.free;
+~bu.query;
+~bu2.play;
+~sounds = Array.new;
+~folder = PathName.new("C:/Users/saulh/Downloads/New folder");
+(
+~folder.entries.do({
+	arg path;
+	~sounds = ~sounds.add(Buffer.read(s, path.fullPath));
+});
+)
+~sounds[0].play;
+~sounds[1].play;
+//SynthDef, using unit genertors to modulate buffers. Looping humorous buttock evacuations! Haha!
+(
+SynthDef.new(\synthBuf, {
+	arg out=0, amp=1, buf, da=2, trig=1, start=0, rate=1, loop=0;
+	var sig;
+	sig = PlayBuf.ar(2, buf, BufRateScale.kr(buf) * rate, trig, start, loop, doneAction:da);
+	sig = sig * amp;
+	Out.ar(out, sig);
+}).add;
+)
+s.quit;
+~bu = Buffer.read(s, "C:/Users/saulh/Downloads/New folder/Fart - Gaming Sound Effect (HD).mp3");
+s.boot;
+s.plotTree;
+Synth.new(\synthBuf, [\buf, ~bu.bufnum, \rate, 1]);
+Synth.new(\synthBuf, [\buf, ~bu.bufnum, \loop, 1]);
+(
+SynthDef.new(\synthPhase, {
+	arg amp=1, out=0, buf, start, end, rate=1;
+	var ex, ptr;
+	ptr = Phasor.ar(0, BufRateScale.kr(buf)*rate, start, end);
+	ex = BufRd.ar(2, buf, ptr);
+	ex = ex * amp;
+	Out.ar(out, ex);
+}).add;
+)
+//Two simultaneous synths, creates idiosyncratic fart beat.
+Synth.new(\synthPhase, [\buf, ~bu.bufnum, \start, 0, \end, ~bu.numFrames-1]);
+Synth.new(\synthPhase, [\start, ~bu.numFrames/1.75, \end, ~bu.numFrames-1]);
+x.set(\rate, -6.midiratio);
