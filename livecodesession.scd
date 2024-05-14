@@ -1,3 +1,6 @@
+//SynthDef utilizing multichannel expansion with Splay & Pan2 (using mathematical operations for a range of the square root of scaling factor). Uses percussive envelope generator.
+//Uses the dust unit generator to create 20 impulses. Uses doneAction:2 to ensure envelope generator will stop following execution. Uses Sine oscillator and VarSaw UGens. Outputting zero busses.
+
 (
 SynthDef.new(\synth, {
 var freq, fx, multi, ex, env;
@@ -13,6 +16,7 @@ multi = Splay.ar(ex, 0.7, 0.8, 1.3);
 Out.ar(0, multi);
 }).play;
 )
+//Uses Pbind to assign constant duration, attack, and relapse. Assigns exponential range for frequency.
 (
 Pbind (
 \instrument, \sine, 
