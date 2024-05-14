@@ -14,7 +14,7 @@ var sigspatialtwo = Pan2.ar(sigtwo, -0.1, 1.2);
 ex = {sigspatialone, sigspatialtwo};
 multi = Splay.ar(ex, 0.7, 0.8, 1.3);
 Out.ar(0, multi);
-}).play;
+}).add;
 )
 //Uses Pbind to assign constant duration, attack, and relapse. Assigns exponential range for frequency.
 (
@@ -24,5 +24,24 @@ Pbind (
 \dur, (0.33, inf),
 \atk, 0.4,
 \rel, 0.5,
+).play;
+)
+//Similar to prior but simpler without multichannel expansion, includes reverb.
+(
+SynthDef.new(\simplesynth, {
+var ex, env, freq, rev;
+env = EnvGen.kr(Env.perc(0.7, 0.8, 1.3, 0.4));
+freq = 300;
+ex = SinOsc.ar(freq) * env * 0.5;
+rev = FreeVerb.ar(ex, 0.7, 0.8, 0.9):
+Out.ar(0, rev);
+}).add;
+)
+//Similar to prior but different instrument, constant duration (rhythmic value of one quintuplet). 60 is fundamental frequency.
+(
+Pbind (
+\instrument, \simplesynth,
+\freq, Pexprand(60, 700, inf);
+\dur, (0.2, inf);
 ).play;
 )
