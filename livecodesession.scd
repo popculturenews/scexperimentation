@@ -20,8 +20,8 @@ Out.ar(0, multi);
 (
 Pbind (
 \instrument, \sine, 
-\freq, Pexprand(100, 500, inf);
-\dur, (0.33, inf);
+\freq, Pexprand(100, 500, inf),
+\dur, (0.33, inf),
 \atk, 0.4,
 \rel, 0.5,
 ).play;
